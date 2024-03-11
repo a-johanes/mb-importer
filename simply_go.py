@@ -36,9 +36,9 @@ class Trip:
     def __str__(self) -> str:
         transaction_str = [str(transaction)
                            for transaction in self.transactions]
-        transaction_lines = '\n'.join(transaction_str)
+        transaction_lines = '\n\t'.join(transaction_str)
 
-        return f'Trip(date={self.date}, from={self.from_destination}, to={self.to_destination}, fare={self.fare}, transport={self.get_transport_type()}, transactions=\n{transaction_lines})'
+        return f'Trip(date={self.date}, from={self.from_destination}, to={self.to_destination}, fare={self.fare}, transport={self.get_transport_type()}, transactions=\n\t{transaction_lines})'
 
     def get_transport_type(self) -> 'TransportType':
         transportTypes = {
@@ -135,6 +135,7 @@ class SimplyGo:
     def parse_trip_data(data: List[str]) -> List['Trip']:
         trips = []
         curr_trip: Trip = None
+        need_trip_detail: bool = False
         curr_transaction: Transaction = None
         need_transaction_detail: bool = False
 
@@ -159,6 +160,8 @@ class SimplyGo:
                     transactions=[]
                 )
 
+                # determined full description based on if it contains the fare
+                need_trip_detail = curr_trip.fare == 0
                 continue
 
             if trimmed_line.startswith("[Posting"):
@@ -167,6 +170,17 @@ class SimplyGo:
                     curr_trip.fare = float(fare_match[0][1])
                 else:
                     raise ValueError("Wrong format, posting doesn't have fare")
+
+                continue
+
+            if need_trip_detail and not trimmed_line == "":
+                fare_match = SimplyGo.fare_regex.findall(trimmed_line)
+                if len(fare_match) > 0:
+                    curr_trip.to_destination += ' ' +fare_match[0][0]
+                    curr_trip.fare = float(fare_match[0][1])
+                    need_trip_detail = False
+                else:
+                    raise ValueError("Wrong format, trip detail doesn't have fare")
 
                 continue
 
@@ -221,13 +235,9 @@ class SimplyGo:
 
 
 if __name__ == '__main__':
-    m = FinanceManager("192.168.0.197:8888")
+    m = FinanceManager("192.168.0.193:8888")
     m.load_asset_data()
     m.load_init_data()
-
-    # print(m.asset_groups)
-    # print(m.expense_categories)
-    # print(m.income_categories)
 
     assets = m.asset_groups
     categories = {
@@ -235,12 +245,11 @@ if __name__ == '__main__':
         InOutCode.Income: m.income_categories,
     }
 
-    trips = SimplyGo.parse_pdf('../doc/TL-SimplyGo-TransactionHistory-15-Jan-24-00-23-20.pdf')
-    # request_list:List[CreateInOutTransactionRequest] = []
+    trips = SimplyGo.parse_pdf('../doc/TL-SimplyGo-TransactionHistory-12-Mar-24-00-33-56.pdf')
+    # print(*trips, sep='\n')
 
     for trip in trips[::-1]:
         request = trip.to_request(assets, categories)
         print(request.to_dict())
-        # request_list.append(request)
 
         m.create_in_out_transaction(request)
