@@ -143,7 +143,7 @@ class CreateTransferTransactionRequest:
 
     def to_dict(self) -> Dict[str, Any]:
         d = {
-            'moveDate': self.date.strftime('%Y-%m-%dT%H:%M:%S'),
+            'moveDate': self.date.strftime('%Y-%m-%d'),
             'toAssetId': self.to_asset.id,
             'fromAssetId': self.from_asset.id,
         }
