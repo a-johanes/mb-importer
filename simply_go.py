@@ -168,9 +168,9 @@ class SimplyGo:
                 fare_match = SimplyGo.fare_regex.findall(trimmed_line)
                 if len(fare_match) > 0:
                     curr_trip.fare = float(fare_match[0][1])
+                    need_trip_detail = False
                 else:
                     raise ValueError("Wrong format, posting doesn't have fare")
-
                 continue
 
             if need_trip_detail and not trimmed_line == "":
