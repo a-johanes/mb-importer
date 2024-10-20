@@ -42,6 +42,7 @@ class Transaction:
             self.date,
             self.debit,
             note=self.reference,
+            description=self.additional_info if not self.misc_info else f'{sef.additional_info} {self.misc_info}'
         )
 
         return request
