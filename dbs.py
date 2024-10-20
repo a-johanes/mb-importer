@@ -75,8 +75,8 @@ class DBS:
 
 
 if __name__ == '__main__':
-    dbs_df = DBS.parse_transaction_history_csv('../doc/15ea875f807034e7dce021dd5d914314.P000000077958701.csv')
-    filtered_df = dbs_df.loc[(dbs_df['Statement Code'] == 'POS') & (dbs_df['Reference'] == 'BAT')]
+    dbs_df = DBS.parse_transaction_history_csv('/home/ajohanes/Downloads/b8fd0fffea50be10f53ff12d06f4026d.P000000077958701.csv')
+    filtered_df = dbs_df.loc[((dbs_df['Statement Code'] == 'POS') & (dbs_df['Reference'] == 'BAT')) | ((dbs_df['Statement Code'] == 'GR') & (dbs_df['Reference'] == 'IBG'))]
     transactions = filtered_df.apply(lambda row: Transaction(*row), axis=1).to_list()
 
     # print(*transactions, sep='\n')
