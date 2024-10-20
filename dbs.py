@@ -40,7 +40,7 @@ class Transaction:
             from_asset,
             to_asset,
             self.date,
-            self.debit,
+            self.debit if self.debit else -self.credit,
             note=self.reference,
             description=self.additional_info if not self.misc_info else f'{self.additional_info} {self.misc_info}'
         )
