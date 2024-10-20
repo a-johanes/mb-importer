@@ -83,7 +83,7 @@ class Trip:
                 sub_category = next(
                     (cat for cat in category.sub_category if cat.id == '26'), None)
             case TransportType.MIXED:
-                next((cat for cat in category.sub_category if cat.id ==
+                sub_category = next((cat for cat in category.sub_category if cat.id ==
                                     '8b3d8e7f-7845-40fe-844f-11855077ded6'), None)
 
         request = CreateInOutTransactionRequest(
