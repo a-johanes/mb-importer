@@ -180,7 +180,8 @@ class SimplyGo:
                     curr_trip.fare = float(fare_match[0][1])
                     need_trip_detail = False
                 else:
-                    raise ValueError("Wrong format, trip detail doesn't have fare")
+                    curr_trip.to_destination += ' ' +trimmed_line
+                    # raise ValueError("Wrong format, trip detail doesn't have fare")
 
                 continue
 
