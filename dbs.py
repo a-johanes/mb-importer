@@ -91,3 +91,5 @@ if __name__ == '__main__':
         print(request.to_dict())
 
         m.create_transfer_transaction(request)
+
+    print("done")

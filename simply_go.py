@@ -82,8 +82,8 @@ class Trip:
         if category is None:
             return
 
-        time = self.end_time
-        if not time:
+        time = datetime.datetime.combine(self.date, self.end_time)
+        if not self.end_time:
             last_transaction = self.transactions[-1]
             time = datetime.datetime.combine(self.date, last_transaction.time)
 
@@ -406,4 +406,5 @@ if __name__ == '__main__':
         request = trip.to_request(assets, categories)
         print(request.to_dict())
 
-        # m.create_in_out_transaction(request)
+        m.create_in_out_transaction(request)
+        print('done')
