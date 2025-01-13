@@ -1,0 +1,1 @@
+from the given image, please help to extract the information and output it as csv. for the column, I need the date and travel end time in AM PM format, mode of transportation (either bus, train, or bus and train), the alighting and descend place, and the travel price. if the title is a journey, ignore the transaction below until the next group and only get the first data.
