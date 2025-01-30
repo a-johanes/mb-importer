@@ -6,7 +6,7 @@ from typing import List, Tuple
 import PyPDF2
 import pytesseract
 from PIL import Image
-# import json
+import csv
 from datetime import datetime
 
 from dto import *
@@ -122,10 +122,15 @@ def parse_date(date_str: str) -> datetime.date | None:
 
 def parse_time(time_str):
     """Convert time string to datetime.time object"""
-    try:
-        return datetime.datetime.strptime(time_str, '%I:%M %p').time()
-    except ValueError:
-        return None
+    time_formats = ['%I:%M %p', '%I:%M%p', '%I%M %p', '%I%M%p']
+
+    for fmt in time_formats:
+        try:
+            return datetime.datetime.strptime(time_str, fmt).time()
+        except ValueError:
+            continue  # Try the next format if the current one fails
+
+    return None  # Return None if all formats fail
 
 
 class SimplyGo:
@@ -266,6 +271,7 @@ class SimplyGo:
     def parse_transit_from_image_path(image_path: str):
         # Extract text from image
         text = pytesseract.image_to_string(Image.open(image_path))
+        # print(text)
 
         # Split into lines and clean up
         lines = [line.strip() for line in text.split('\n') if line.strip()]
@@ -351,8 +357,8 @@ class SimplyGo:
                 continue
 
             # Extract time information
-            elif current_journey and re.search(r'\d{2}:\d{2} [AP]M', line):
-                times = re.findall(r'\d{2}:\d{2} [AP]M', line)
+            elif current_journey and re.search(r'\d{2}:?\d{2}\s?[AP]M', line):
+                times = re.findall(r'\d{2}:?\d{2}\s?[AP]M', line)
                 if len(times) >= 2:
                     if in_journey and found_journey_time:
                         continue
@@ -374,7 +380,7 @@ class SimplyGo:
                 if len(locations) == 2:
                     current_journey.to_destination = locations[1].strip()
 
-            elif current_journey and not 'No More Transactions' in line:
+            elif current_journey and not 'No More Transactions' in line and not 'Reference' in line and not 'Posted Amount' in line:
                 if in_journey and found_journey_location:
                     continue
 
@@ -385,6 +391,53 @@ class SimplyGo:
             journeys.append(current_journey)
 
         return journeys
+
+    @staticmethod
+    def parse_transit_from_claude_csv(path: str):
+        """
+        Convert CSV file to JSON format where each row becomes a JSON object
+
+        Parameters:
+        csv_file_path (str): Path to input CSV file
+        json_file_path (str): Path to output JSON file
+        """
+        # List to store all records
+        records = []
+
+        try:
+            with open(path, 'r') as csv_file:
+                # Create CSV reader with dictionary format
+                csv_reader = csv.DictReader(csv_file)
+
+                # Process each row
+                for row in csv_reader:
+                    # Clean and format the data
+                    record = Trip(
+                        date=parse_date(row["Date"]),
+                        from_destination=row["Origin"],
+                        to_destination=row["Destination"],
+                        end_time=parse_time(row["End Time"]),
+                        fare=float(row["Price"].replace("$", "")),  # Convert price to float,
+                        transactions=[]
+                    )
+                    mode = row["Mode"].lower()
+                    if mode == 'bus':
+                        record.transport = TransportType.BUS
+                    elif mode == 'train':
+                        record.transport = TransportType.MRT
+                    else:
+                        record.transport = TransportType.MIXED
+
+                    records.append(record)
+
+            return records
+
+        except FileNotFoundError:
+            print("Error: Input CSV file not found")
+            return None
+        except Exception as e:
+            print(f"Error occurred: {str(e)}")
+            return None
 
 
 if __name__ == '__main__':
@@ -399,12 +452,18 @@ if __name__ == '__main__':
     }
 
     # trips = SimplyGo.parse_pdf('/home/ajohanes/Downloads/TL-SimplyGo-TransactionHistory-20-Oct-24-22-00-07.pdf')
-    trips = SimplyGo.parse_transit_from_image_path('/home/ajohanes/Downloads/notsimplygo/day.jpg')
+    # trips = SimplyGo.parse_transit_from_image_path(
+    #     '/home/ajohanes/Downloads/Telegram Desktop/day6.jpg')
+    trips = SimplyGo.parse_transit_from_claude_csv(
+        './transport.csv')
     # print(*trips, sep='\n')
 
     for trip in trips[::-1]:
+        # print(trip)
+
         request = trip.to_request(assets, categories)
         print(request.to_dict())
 
         m.create_in_out_transaction(request)
-        print('done')
+
+    print('done')
