@@ -1,0 +1,11 @@
+certifi==2025.1.31
+charset-normalizer==3.4.1
+cson==0.8
+idna==3.10
+packaging==24.2
+pillow==11.1.0
+PyPDF2==3.0.1
+pytesseract==0.3.13
+requests==2.32.3
+speg==0.3
+urllib3==2.3.0
