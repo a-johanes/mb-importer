@@ -156,7 +156,7 @@ class SimplyGo:
             return result
 
     trip_start_regex = re.compile(
-        "^(\\w{3}, \\d{2}/\\d{2}/\\d{4})(\s?)(.*) - (((.*) \\$(\\d+\\.\\d+))|(.*))$")
+        "^(\\w{3}, \\d{2}/\\d{2}/\\d{4})(\\s?)(.*) - (((.*) \\$(\\d+\\.\\d+))|(.*))$")
     fare_regex = re.compile("^(.*)\\$([0-9.]+)$")
     tansaction_start_regex = re.compile(
         "^(\\d{2}:\\d{2} [AP][M])(.*) - ((.*) (\\$([0-9.]+))|(.*))$")
@@ -464,6 +464,6 @@ if __name__ == '__main__':
         request = trip.to_request(assets, categories)
         print(request.to_dict())
 
-        m.create_in_out_transaction(request)
+        # m.create_in_out_transaction(request)
 
     print('done')
