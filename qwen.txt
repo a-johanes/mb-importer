@@ -1,4 +1,4 @@
-**Task:** Parse the provided travel history image and generate a CSV file with the following columns: `Date`, `End Time`, `Mode`, `Origin`, `Destination`, `Price`. Only output the final csv in a code block without any additional words. Ensure the following formatting rules are applied:
+**Task:** Parse the provided travel history image and generate a CSV file with the following columns: `Date`, `End Time`, `Mode`, `Origin`, `Destination`, `Price`. Only output the final CSV in a code block without any additional words. You must not output the date if no transaction is listed. Ensure the following formatting rules are applied:
 
 1. **End Time**: Convert the end time to a 12-hour format (AM/PM).
 2. **Mode**: Identify the mode of transportation. It can be:
@@ -7,39 +7,36 @@
    - `Bus and Train` if both modes are used in a single journey.
 3. **Price**: Extract the absolute value of the price and suffix it with a dollar sign (`$`). Ensure the price is positive.
 4. **Journey Grouping**: Treat entries marked as "Journey" as a single travel event. Combine all legs of the journey into one row, using the start and end points of the journey for `Origin` and `Destination`.
-
-**Input Image Description:**
-The image contains a list of public transport transactions with details such as date, time, mode of transport, origin, destination, and price. Some entries are grouped under "Journey," indicating multiple legs of travel.
-
-**Output Format:**
-The output should be a CSV file with the following structure:
-```
-Date,End Time,Mode,Origin,Destination,Price
-```
+5. **Strictly Ignore Dates Without Transactions**: Exclude any date that does not have at least one valid bus or train service listed. Even if there is a reference number or posted amount but no specific bus/train services are mentioned, exclude the date entirely from the output.
+6. **Output Format:** The output should strictly be a CSV file with no additional text or explanations. The CSV should have the following structure:
+   ```
+   Date,End Time,Mode,Origin,Destination,Price
+   ```
 
 **Steps to Follow:**
 1. **Extract Dates:** Identify the date for each transaction.
-2. **Parse Time:** Extract the end time from each transaction and convert it to 12-hour format (AM/PM).
-3. **Determine Mode:** 
+2. **Strictly Ignore Dates Without Transactions:** If a date has no valid bus or train services listed—even if there are reference numbers, amounts, or other information—exclude it entirely from the output. Do not include rows where the mode, origin, destination, or price cannot be determined due to lack of transaction details.
+3. **Parse Time:** Extract the end time from each transaction and convert it to 12-hour format (AM/PM).
+4. **Determine Mode:**
    - If the entry is a single bus or train service, use the respective mode.
    - If the entry is a "Journey," check if both bus and train services are used and label accordingly.
-4. **Extract Origin and Destination:**
+5. **Extract Origin and Destination:**
    - For single entries, use the provided origin and destination.
    - For "Journey" entries, use the starting point as the origin and the ending point as the destination.
-5. **Extract Price:** Take the absolute value of the price and append a dollar sign (`$`).
-6. **Handle Journey Groups:** Combine all legs of a "Journey" into a single row, using the overall start and end points.
+6. **Extract Price:** Take the absolute value of the price and append a dollar sign (`$`).
+7. **Handle Journey Groups:** Combine all legs of a "Journey" into a single row, using the overall start and end points.
 
 **Example Output:**
 ```
 Date,End Time,Mode,Origin,Destination,Price
 13-Apr-2025,12:53 PM,Bus,Opp Blessed Sacrament Ch,Blk 161,$1.19
 13-Apr-2025,10:30 AM,Bus,Blk 1003,Aft C'wealth Dr,$1.19
-12-Apr-2025,07:27 PM,Bus,Blk 55/Opp 5 Sci Pk Dr,Opp Bt Merah Town Ctr,$1.29
 11-Apr-2025,09:30 AM,Bus and Train,Bt Merah Town Ctr,5 Sci Pk Dr,$1.40
 ...
 ```
 
-**Additional Notes:**
-- Ensure that the "Journey" entries are treated as a single travel event, combining all legs into one row.
+**Important Notes:**
+- The output must be **strictly a CSV** with no additional text, headers, or explanations.
+- Ensure that dates without transactions (e.g., "No More Transactions") are strictly excluded from the output.
 - Maintain consistent formatting for dates, times, and prices.
-- Handle negative prices by converting them to positive values.
+- If a date contains only reference numbers or amounts but no specific bus or train services, exclude the date entirely from the CSV output.
