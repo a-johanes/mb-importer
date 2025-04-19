@@ -1,36 +1,56 @@
 **Task:** Parse the provided travel history image and generate a CSV file with the following columns: `Date`, `End Time`, `Mode`, `Origin`, `Destination`, `Price`. Only output the final CSV in a code block without any additional words. You must not output the date if no transaction is listed. Ensure the following formatting rules are applied:
 
-1. **End Time**: Convert the end time to a 12-hour format (AM/PM).
+1. **End Time**: Convert the end time to a 12-hour format (AM/PM). If the end time is missing for a standalone transaction, put 12:00 AM instead.
+
 2. **Mode**: Identify the mode of transportation. It can be:
    - `Bus` if only one bus service is used.
    - `Train` if only one train service is used.
    - `Bus and Train` if both modes are used in a single journey.
-3. **Price**: Extract the absolute value of the price and suffix it with a dollar sign (`$`). Ensure the price is positive.
+
+3. **Price**: Extract the absolute value of the price and prefix it with a dollar sign (`$`). Ensure the price is positive.
+
 4. **Journey Grouping**: Treat entries marked as "Journey" as a single travel event. Combine all legs of the journey into one row, using the start and end points of the journey for `Origin` and `Destination`.
-5. **Strictly Ignore Dates Without Transactions**: Exclude any date that does not have at least one valid bus or train service listed. Even if there is a reference number or posted amount but no specific bus/train services are mentioned, exclude the date entirely from the output.
-6. **Output Format:** The output should strictly be a CSV file with no additional text or explanations. The CSV should have the following structure:
+
+5. **Standalone Transactions**: Ensure that all standalone transactions (those not part of a "Journey") are individually included in the output. Each standalone entry should have its own row, even if it appears adjacent to or before/after a "Journey" entry.
+
+6. **Origin and Destination Extraction**:
+   - For standalone transactions, **explicitly extract the origin and destination directly from the text of the standalone transaction itself**. Do not reuse, inherit, or infer locations from adjacent transactions, journeys, or any other external context. Each standalone transaction must stand alone in terms of location data.
+   - For entries marked as "Journey," use the starting point of the first leg as the **origin** and the ending point of the last leg as the **destination**. Intermediate locations within the journey should not overwrite these values.
+
+7. **Strictly Ignore Dates Without Transactions**: Exclude any date that does not have at least one valid bus or train service listed. Even if there is a reference number or posted amount but no specific bus/train services are mentioned, exclude the date entirely from the output.
+
+8. **Output Format:** The output should strictly be a CSV file with no additional text or explanations. The CSV should have the following structure:
    ```
    Date,End Time,Mode,Origin,Destination,Price
    ```
 
 **Steps to Follow:**
 1. **Extract Dates:** Identify the date for each transaction.
-2. **Strictly Ignore Dates Without Transactions:** If a date has no valid bus or train services listed—even if there are reference numbers, amounts, or other information—exclude it entirely from the output. Do not include rows where the mode, origin, destination, or price cannot be determined due to lack of transaction details.
-3. **Parse Time:** Extract the end time from each transaction and convert it to 12-hour format (AM/PM).
+   
+2. **Handle Standalone Transactions:** Before grouping "Journey" legs, identify and list all standalone transactions (e.g., single bus or train rides) on the same date. Each standalone transaction should appear as an individual row in the output.
+
+3. **Parse Time:** Extract the end time from each transaction and convert it to 12-hour format (AM/PM). If the end time is missing for a standalone transaction, put 12:00 AM instead.
+
 4. **Determine Mode:**
    - If the entry is a single bus or train service, use the respective mode.
    - If the entry is a "Journey," check if both bus and train services are used and label accordingly.
-5. **Extract Origin and Destination:**
-   - For single entries, use the provided origin and destination.
-   - For "Journey" entries, use the starting point as the origin and the ending point as the destination.
+
+5. **Extract Origin and Destination**:
+   - For standalone transactions, **explicitly extract the origin and destination directly from the text of the standalone transaction itself**. Do not reuse, inherit, or infer locations from adjacent transactions, journeys, or any other external context. Each standalone transaction must stand alone in terms of location data.
+   - For "Journey" entries, use the starting point of the first leg as the **origin** and the ending point of the last leg as the **destination**. Intermediate locations within the journey should not overwrite these values.
+
 6. **Extract Price:** Take the absolute value of the price and append a dollar sign (`$`).
-7. **Handle Journey Groups:** Combine all legs of a "Journey" into a single row, using the overall start and end points.
+
+7. **Combine Journey Legs:** For entries marked as "Journey," combine all legs of the journey into a single row, using the overall start and end points.
+
+8. **Exclude Dates Without Valid Transactions:** If a date contains only reference numbers or amounts but no specific bus or train services, exclude the date entirely from the CSV output.
 
 **Example Output:**
 ```
 Date,End Time,Mode,Origin,Destination,Price
 13-Apr-2025,12:53 PM,Bus,Opp Blessed Sacrament Ch,Blk 161,$1.19
 13-Apr-2025,10:30 AM,Bus,Blk 1003,Aft C'wealth Dr,$1.19
+11-Apr-2025,,Bus,Blk 55/Opp 5 Sci Pk Dr,Opp Bt Merah Town Ctr,$1.29
 11-Apr-2025,09:30 AM,Bus and Train,Bt Merah Town Ctr,5 Sci Pk Dr,$1.40
 ...
 ```
@@ -39,4 +59,6 @@ Date,End Time,Mode,Origin,Destination,Price
 - The output must be **strictly a CSV** with no additional text, headers, or explanations.
 - Ensure that dates without transactions (e.g., "No More Transactions") are strictly excluded from the output.
 - Maintain consistent formatting for dates, times, and prices.
+- Include **all standalone transactions** on a given date, even if they appear adjacent to or before/after "Journey" entries.
 - If a date contains only reference numbers or amounts but no specific bus or train services, exclude the date entirely from the CSV output.
+- **Do not reuse, inherit, or infer origins or destinations from adjacent transactions or journeys. Always extract them explicitly from the standalone transaction text itself.**
